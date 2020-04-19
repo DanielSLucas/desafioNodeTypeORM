@@ -1,13 +1,20 @@
 import { Router } from 'express';
 import { getCustomRepository } from 'typeorm';
+import multer from 'multer';
+import fs from 'fs';
+import csv from 'csv-parse';
+
+import uploadConfig from '../config/upload';
+
+import Transaction from '../models/Transaction';
 
 import TransactionsRepository from '../repositories/TransactionsRepository';
 import CreateTransactionService from '../services/CreateTransactionService';
-import Category from '../models/Category';
-// import DeleteTransactionService from '../services/DeleteTransactionService';
+import DeleteTransactionService from '../services/DeleteTransactionService';
 // import ImportTransactionsService from '../services/ImportTransactionsService';
 
 const transactionsRouter = Router();
+const upload = multer(uploadConfig);
 
 transactionsRouter.get('/', async (request, response) => {
   const transactionsRepository = getCustomRepository(TransactionsRepository);
@@ -22,30 +29,43 @@ transactionsRouter.get('/', async (request, response) => {
 });
 
 transactionsRouter.post('/', async (request, response) => {
-  try {
-    const { title, value, type, category } = request.body;
+  const { title, value, type, category } = request.body;
 
-    const createTransactionService = new CreateTransactionService();
+  const createTransactionService = new CreateTransactionService();
 
-    const transaction = await createTransactionService.execute({
-      title,
-      value,
-      type,
-      category,
-    });
+  const transaction = await createTransactionService.execute({
+    title,
+    value,
+    type,
+    category,
+  });
 
-    return response.json(transaction);
-  } catch (err) {
-    return response.status(400).json({ error: err.message });
-  }
+  return response.json(transaction);
 });
 
 transactionsRouter.delete('/:id', async (request, response) => {
-  // TODO
+  const { id } = request.params;
+
+  const deleteTransactionService = new DeleteTransactionService();
+
+  await deleteTransactionService.execute(id);
+
+  return response.status(204).send();
 });
 
-transactionsRouter.post('/import', async (request, response) => {
-  // TODO
-});
+transactionsRouter.post(
+  '/import',
+  upload.single('csvFile'),
+  async (request, response) => {
+    const transactionsJSON: Transaction[] = [];
+    const fileName = request.file.filename;
+
+    await fs
+      .createReadStream(`${uploadConfig.directory}/${fileName}`)
+      .pipe(csv())
+      .on('data', data => transactionsJSON.push(data))
+      .on('end', () => response.json(transactionsJSON));
+  },
+);
 
 export default transactionsRouter;
