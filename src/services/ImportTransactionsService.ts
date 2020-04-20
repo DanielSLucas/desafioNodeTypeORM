@@ -34,7 +34,7 @@ class ImportTransactionsService {
         cell.trim(),
       );
 
-      if (title || type || value) return;
+      if (!title || !type || !value) return;
 
       categories.push(category);
 
@@ -42,8 +42,6 @@ class ImportTransactionsService {
     });
 
     await new Promise(resolve => parseCSV.on('end', resolve));
-
-    console.log({ categories, transactions });
 
     const existentCategories = await categoriesRepository.find({
       where: {
