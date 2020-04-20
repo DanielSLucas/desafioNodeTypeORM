@@ -18,13 +18,13 @@ class ImportTransactionsService {
     const categoriesRepository = getRepository(Category);
     const transactionsRepository = getCustomRepository(TransactionsRepository);
 
-    const readStream = fs.createReadStream(filePath);
+    const contactsReadStream = fs.createReadStream(filePath);
 
     const parser = csv({
       from_line: 2,
     });
 
-    const parseCSV = readStream.pipe(parser);
+    const parseCSV = contactsReadStream.pipe(parser);
 
     const transactions: CSVTransaction[] = [];
     const categories: string[] = [];
@@ -38,10 +38,12 @@ class ImportTransactionsService {
 
       categories.push(category);
 
-      transactions.push(title, type, value, category);
+      transactions.push({ title, type, value, category });
     });
 
     await new Promise(resolve => parseCSV.on('end', resolve));
+
+    console.log({ categories, transactions });
 
     const existentCategories = await categoriesRepository.find({
       where: {

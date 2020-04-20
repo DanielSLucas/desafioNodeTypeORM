@@ -51,12 +51,12 @@ transactionsRouter.delete('/:id', async (request, response) => {
 
 transactionsRouter.post(
   '/import',
-  upload.single('csvFile'),
+  upload.single('file'),
   async (request, response) => {
     const importTransactionsService = new ImportTransactionsService();
     const filePath = request.file.path;
 
-    const transactions = importTransactionsService.execute(filePath);
+    const transactions = await importTransactionsService.execute(filePath);
 
     return response.json(transactions);
   },
