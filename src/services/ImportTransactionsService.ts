@@ -92,13 +92,16 @@ export default ImportTransactionsService;
 
 // const transactionsJSON: string[][] = [];
 
-// await fs
-//   .createReadStream(`${uploadConfig.directory}/${filePath}`)
+// const parseCSV = await fs
+//   .createReadStream(filePath)
 //   .pipe(csv())
-//   .on('data', async data => transactionsJSON.push(data))
-//   .on('end', () => transactionsJSON);
+//   .on('data', async data => transactionsJSON.push(data));
 
 // const transactionsRepository = getCustomRepository(TransactionsRepository);
+
+// const newTransactions: Transaction[] = [];
+
+// await new Promise(resolve => parseCSV.on('end', resolve));
 
 // for (let i = 1; i <= transactionsJSON.length; i += 1) {
 //   const csvLine = transactionsJSON[i];
